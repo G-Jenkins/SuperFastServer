@@ -9,7 +9,7 @@ const port = 3030
 
 const client = new Client({
  host: 'localhost', // change later
- port: 8080, //change later
+ port: 3000, //change later
  database: 'mystic', // change later
 })
 app.get('/', (req, res) => {
@@ -25,7 +25,7 @@ client.connect()
    // Execute SQL queries here
 
 
-   client.query('SELECT * FROM photos', (err, result) => {
+   client.query('SELECT * FROM answers LIMIT 1', (err, result) => {
      if (err) {
        console.error('Error executing query', err);
      } else {
@@ -55,5 +55,5 @@ client.connect()
 
 
 app.listen(port, () => {
- console.log(`Example app listening on port ${port}`)
+ console.log(`its happening at port ${port}`)
 })
