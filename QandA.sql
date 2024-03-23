@@ -23,14 +23,17 @@ CREATE TABLE questions (
 
 
 CREATE TABLE answers (
- answer_id SERIAL PRIMARY KEY,
+ id INTEGER PRIMARY KEY,
  question_id INTEGER NOT NULL,
  body TEXT NOT NULL,
- date TIMESTAMP DEFAULT current_timestamp,
+ date VARCHAR DEFAULT,
  answerer_name VARCHAR(255) NOT NULL,
+ answerer_email VARCHAR(255) NOT NULL,
  helpfulness INTEGER NOT NULL,
  FOREIGN KEY (question_id) REFERENCES questions(question_id)
 );
+
+
 
 
 CREATE TABLE photos (

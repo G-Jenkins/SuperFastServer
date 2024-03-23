@@ -20,11 +20,7 @@ app.get('/', (req, res) => {
 client.connect()
  .then(() => {
    console.log('Connected to PostgreSQL database');
-
-
    // Execute SQL queries here
-
-
    client.query('SELECT * FROM answers LIMIT 1', (err, result) => {
      if (err) {
        console.error('Error executing query', err);
@@ -46,12 +42,6 @@ client.connect()
  .catch((err) => {
    console.error('Error connecting to PostgreSQL database', err);
  });
-
-
-
-
-
-
 
 
 app.listen(port, () => {
