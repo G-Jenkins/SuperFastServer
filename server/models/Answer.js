@@ -1,50 +1,54 @@
 const { Pool } = require('pg');
-import pool = require('../db/db.js')
+const pool = require('../../db/db.js')
 
 const getAnswers = async() => {
   const { rows } = await pool.query('SELECT * FROM answers LIMIT 10');
   return rows;
 };
 
-const postAnswer = async(questionId, body, answerer_name, answerer_email) => {
-  const query = `
-  INSERT INTO answers (question_id, body, answerer_name, answerer_email)
-  VALUES($1, $2, $3, $4)
-  RETURNING *;`;
-  const { rows } = await pool.query(queryText, )
-}
-
-const updateAnswerHelpfulness = async (req, res) => {
+const postAnswer = async (questionId, body, answerer_name, answerer_email, photos) => {
+  const client = await pool.connect();
   try {
-    const { answer_id } = req.params;
-    const queryText = `
-    UPDATE answers
-    SET helpfulness = helpfulness + 1
-    WHERE answer_id = $1
-    RETURNING *;`;
-  } catch (err) {
-    console.error('Error updating answer helpfulness : ', err);
-    res.status(500).send('Internal Server Error');
-  }
-}
+    await client.query('BEGIN'); // Start transaction
 
-const updateAnswerReport = async (req, res) => {
-  try {
-    const { answer_id } = req.params;
-    const queryText = `
-    UPDATE answers
-    SET helpfulness = helpfulness + 1
-    WHERE answer_id = $
-    RETURNING *;`;
-    const { rows } = await pool.query(queryText, [answer_id]);
-    if (rows.length > 0) {
-      res.json({ message: 'Answer reported successfully' });
-    } else {
-      res.status(404).send('Answer not found');
+    // Insert the answer and get back the answer_id
+    const answerInsertQuery = `
+      INSERT INTO answers (question_id, body, answerer_name, answerer_email, date_written, reported, helpfulness)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, false, 0)
+      RETURNING answer_id;`; // Assuming date_written is the correct column for the timestamp
+    const answerResult = await client.query(answerInsertQuery, [questionId, body, answerer_name, answerer_email]);
+    const answerId = answerResult.rows[0].answer_id;
+
+    // Insert each photo URL associated with the answer
+    if (photos && photos.length > 0) {
+      const photoInsertQuery = 'INSERT INTO photos (answer_id, url) VALUES ($1, $2)';
+      for (const photoUrl of photos) {
+        await client.query(photoInsertQuery, [answerId, photoUrl]);
+      }
     }
-  } catch (err) {
-    console.error('Error updating answer helpfulness : ', err);
-    res.status(500).send('Internal Server Error');
+
+    await client.query('COMMIT'); // Commit the transaction
+    return { answerId, questionId, body, answerer_name, answerer_email, photos };
+  } catch (e) {
+    await client.query('ROLLBACK'); // Rollback the transaction in case of error
+    throw e;
+  } finally {
+    client.release(); // Release the client back to the pool
   }
+};
+
+
+const updateAnswerHelpfulness = async (answer_id) => {
+  const query = 'UPDATE answers SET helpfulness = helpfulness + 1 WHERE answer_id = $1 RETURNING *';
+  const { rows } = await pool.query(query, [answer_id]);
+  return rows;
 }
-module.exports = { getAnswers }
+
+const updateAnswerReport = async (answer_id) => {
+const query = 'UPDATE answers SET reported = true WHERE answer_id = $1 RETURNING*;'
+const { rows } = await pool.query(query, [answer_id]);
+console.log('data3');
+return rows;
+}
+
+module.exports = { getAnswers, updateAnswerHelpfulness, updateAnswerReport, postAnswer }

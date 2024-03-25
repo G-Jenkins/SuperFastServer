@@ -1,18 +1,25 @@
-import router = require('express').Router();
-const controllers = require('./controllers')
-
+const express = require('express');
+const router = express.Router();
+const questionsController = require('../controllers/questionsController.js');
+const answerController = require('../controllers/answerController.js');
+const productsControllers = require('../controllers/productsControllers.js')
 // controller methods
+
+// Products
+router.get('/products', productsControllers.getProducts)
+router.get('/products', (req, res) => {
+  console.log('GET request to /api/products');
+})
 // Q's
-router.get('/questions', getProducts);
-router.post('/questions', )
-router.put('/questions/:question_id/helpful', markQuestionHelpful)
-router.put('/questions/:question_id/report', markQuestionReported)
+router.get('/qa/questions', questionsController.getQuestions);
+router.post('/qa/questions', questionsController.postQuestion);
+router.put('/qa/questions/:question_id/helpful', questionsController.updateQuestionHelpfulness);
+router.put('/qa/questions/:question_id/report', questionsController.updateQuestionReport);
 
 // A's
-router.get('/questions/:question_id/answers', getAnswers)
-router.post('/questions:/question_id/answers', postAnswer)
-router.put('/answers/:answer_id/helpful', helpfulAnswer)
-router.put('/answers/:answer_id/report', reportAnswer)
+router.get('/qa/questions/:question_id/answers', answerController.getAnswers)
+router.post('/qa/questions/:question_id/answers', answerController.postAnswer);
+router.put('/qa/answers/:answer_id/helpful', answerController.updateAnswerHelpfulness)
+router.put('/qa/answers/:answer_id/report', answerController.updateAnswerReport)
 
-//
 module.exports = router;
