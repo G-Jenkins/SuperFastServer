@@ -7,6 +7,7 @@ const port = 3030;
 const routes = require('./routes/routes.js');
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public/')))
 
 app.use('/api', routes);
 

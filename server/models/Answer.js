@@ -9,17 +9,14 @@ const getAnswers = async() => {
 const postAnswer = async (questionId, body, answerer_name, answerer_email, photos) => {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN'); // Start transaction
-
-    // Insert the answer and get back the answer_id
+    await client.query('BEGIN');
     const answerInsertQuery = `
       INSERT INTO answers (question_id, body, answerer_name, answerer_email, date_written, reported, helpfulness)
       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, false, 0)
-      RETURNING answer_id;`; // Assuming date_written is the correct column for the timestamp
+      RETURNING answer_id;`;
     const answerResult = await client.query(answerInsertQuery, [questionId, body, answerer_name, answerer_email]);
     const answerId = answerResult.rows[0].answer_id;
 
-    // Insert each photo URL associated with the answer
     if (photos && photos.length > 0) {
       const photoInsertQuery = 'INSERT INTO photos (answer_id, url) VALUES ($1, $2)';
       for (const photoUrl of photos) {
@@ -27,13 +24,13 @@ const postAnswer = async (questionId, body, answerer_name, answerer_email, photo
       }
     }
 
-    await client.query('COMMIT'); // Commit the transaction
+    await client.query('COMMIT');
     return { answerId, questionId, body, answerer_name, answerer_email, photos };
   } catch (e) {
-    await client.query('ROLLBACK'); // Rollback the transaction in case of error
+    await client.query('ROLLBACK');
     throw e;
   } finally {
-    client.release(); // Release the client back to the pool
+    client.release();
   }
 };
 
